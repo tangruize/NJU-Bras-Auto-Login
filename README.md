@@ -34,11 +34,9 @@ python bras.py USERNAME -k  # 保持连接, 5分钟登录一次
 ### 命令行选项
 
 ```txt
-usage: bras.py [-h] [-o] [-k] [-p seconds] [-n] [-l filename] [--no-keyring]
-               [--password password]
-               [username]
+usage: bras.py [-h] [-o] [-k] [-p seconds] [-l filename] [-n] [--no-keyring] [--password password] [username]
 
-自动登录南大校园
+自动登录南大校园网
 
 positional arguments:
   username              用户名称
@@ -49,10 +47,10 @@ optional arguments:
   -k, --keep-alive      保持登录(5分钟登录一次)
   -p seconds, --period seconds
                         保持登录并设置间隔时间
-  -n, --non-interactive
-                        不询问用户名密码
   -l filename, --log filename
                         输出记录到文件
+  -n, --non-interactive
+                        不询问用户名密码
   --no-keyring          不使用keyring
   --password password   用户密码
 ```

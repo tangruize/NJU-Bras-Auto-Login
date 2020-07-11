@@ -79,14 +79,14 @@ if __name__ == '__main__':
     data = {'username': '', 'password': ''}
     log_file = None
 
-    parser = argparse.ArgumentParser(description='自动登录南大校园')
+    parser = argparse.ArgumentParser(description='自动登录南大校园网')
     parser.add_argument(dest='username', metavar='username', nargs='?', help='用户名称')
     parser.add_argument('-o', '--out', dest='logout', action='store_true', help='退出登录')
     parser.add_argument('-k', '--keep-alive', dest='keep', action='store_true', help='保持登录(5分钟登录一次)')
     parser.add_argument('-p', '--period', dest='period', metavar='seconds', default=0, type=int,
                         help='保持登录并设置间隔时间')
-    parser.add_argument('-n', '--non-interactive', dest='non_interactive', action='store_true', help='不询问用户名密码')
     parser.add_argument('-l', '--log', dest='log', metavar='filename', help='输出记录到文件')
+    parser.add_argument('-n', '--non-interactive', dest='non_interactive', action='store_true', help='不询问用户名密码')
     parser.add_argument('--no-keyring', dest='no_keyring', action='store_true', help='不使用keyring')
     parser.add_argument('--password', dest='password', metavar='password', help='用户密码')
     arg = parser.parse_args()
