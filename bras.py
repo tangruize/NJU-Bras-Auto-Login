@@ -47,7 +47,7 @@ def print_response(r):
         r['request_time'] = str(datetime.datetime.fromtimestamp(r['request_time']))
     if 'userinfo' in r:
         r['userinfo']['acctstarttime'] = str(datetime.datetime.fromtimestamp(r['userinfo']['acctstarttime']))
-        r['userinfo']['balance'] = '{}元'.format(r['userinfo']['balance'] / 100)
+        r['userinfo']['balance'] = r['userinfo']['balance'] / 100
         r['userinfo']['portal_server_ip'] = str(ipaddress.IPv4Address(r['userinfo']['portal_server_ip']))
         r['userinfo']['useripv4'] = str(ipaddress.IPv4Address(r['userinfo']['useripv4']))
     my_print(json.dumps(r, ensure_ascii=False))
@@ -68,7 +68,10 @@ def bras(d=None):
         my_print(response.status_code, response.reason)
         return -1
     except requests.exceptions.ConnectTimeout:
-        my_print('Timeout')
+        my_print({'reply_code': -1, 'reply_msg': '连接超时'})
+        return -1
+    except requests.exceptions.ConnectionError:
+        my_print({'reply_code': -1, 'reply_msg': '网络错误'})
         return -1
     else:
         print_response(r)
