@@ -3,7 +3,9 @@
 # Usage: python3 bras.py username
 
 import datetime
+import hashlib
 import ipaddress
+import random
 import sys
 import time
 import getpass
@@ -53,29 +55,45 @@ def print_response(r):
     my_print(json.dumps(r, ensure_ascii=False))
 
 
-def bras(d=None):
+def try_post(url, d):
     try:
-        my_print('[{}]'.format(datetime.datetime.now()), end=' ')
-        if d:  # 登录
-            url = 'http://p.nju.edu.cn/portal_io/login'
-            response = requests.post(url=url, data={'username': '123', 'password': 'abc'}, timeout=10)
-            if response.json()['reply_code'] != 6:  # 6: 已登录
-                response = requests.post(url=url, data=d, timeout=10)
-        else:  # 退出
-            response = requests.post(url='http://p.nju.edu.cn/portal_io/logout', data=d, timeout=10)
-        r = response.json(object_pairs_hook=OrderedDict)
-    except ValueError:
-        my_print(response.status_code, response.reason)
-        return -1
-    except requests.exceptions.ConnectTimeout:
-        my_print({'reply_code': -1, 'reply_msg': '连接超时'})
-        return -1
-    except requests.exceptions.ConnectionError:
-        my_print({'reply_code': -1, 'reply_msg': '网络错误'})
-        return -1
+        response = requests.post(url=url, data=d, timeout=10)
+    except requests.exceptions.RequestException as e:
+        my_print({'reply_code': -1, 'reply_msg': str(e)})
+        return None
+    return response
+
+
+def create_chap_password(url, d):
+    """http://p.nju.edu.cn/portal/js/portal.js"""
+    response = try_post(url, None)
+    if response and response.json()['reply_code'] == 0:
+        challenge = response.json()['challenge']
     else:
+        return None
+    rid = random.randint(0, 255)
+    password = chr(rid) + d['password'] + ''.join([chr(int(challenge[i:i+2], 16)) for i in range(0, len(challenge), 2)])
+    password = '{:02x}'.format(rid) + hashlib.md5(password.encode('latin-1')).hexdigest()
+    chap_data = {'username': d['username'], 'password': password, 'challenge': challenge}
+    return chap_data
+
+
+def bras(d=None):
+    url_prefix = 'http://p.nju.edu.cn/portal_io/'
+    my_print('[{}]'.format(datetime.datetime.now()), end=' ')
+    if d:  # 登录
+        response = try_post(url_prefix + 'getinfo', None)
+        if response and response.json()['reply_code'] != 0:  # 0: 已登录
+            chap_data = create_chap_password(url_prefix + 'getchallenge', d)
+            response = try_post(url_prefix + 'login', chap_data)
+    else:  # 退出
+        response = try_post(url_prefix + 'logout', None)
+    if response:
+        r = response.json(object_pairs_hook=OrderedDict)
         print_response(r)
         return r['reply_code']
+    else:
+        return -1
 
 
 if __name__ == '__main__':
@@ -117,4 +135,4 @@ if __name__ == '__main__':
         status = bras(data)
         if status == 3 and not arg.no_keyring:  # 3: 认证失败
             del_password(data)
-        sys.exit(0 if status in [1, 6, 101] else 1)  # 1: 登录成功, 6: 已登录, 101: 下线成功
+        sys.exit(0 if status in [0, 1, 6, 101] else 1)  # 0: 操作成功, 1: 登录成功, 6: 已登录, 101: 下线成功
