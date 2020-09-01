@@ -22,12 +22,19 @@ def get_password(d, no_keyring=False, non_interactive=False):
     if not d['username'] and not non_interactive:
         d['username'] = input('Username: ')
     if not d['password'] and not no_keyring:
-        d['password'] = keyring.get_password('nju_bras', d['username'])
+        try:
+            d['password'] = keyring.get_password('nju_bras', d['username'])
+        except RuntimeError:
+            print('Warning: failed to get password from keyring.', file=sys.stderr, flush=True)
+            no_keyring = True
     if not d['password'] and not non_interactive:
         d['password'] = getpass.getpass('Password: ')
         save_password = True
     if save_password and not no_keyring:
-        keyring.set_password('nju_bras', d['username'], d['password'])
+        try:
+            keyring.set_password('nju_bras', d['username'], d['password'])
+        except RuntimeError:
+            print('Warning: failed to save password to keyring.', file=sys.stderr, flush=True)
 
 
 def del_password(d):
@@ -113,7 +120,11 @@ if __name__ == '__main__':
     arg = parser.parse_args()
 
     if not arg.no_keyring and not arg.logout:
-        import keyring
+        try:
+            import keyring
+        except ImportError:
+            print('Warning: package "keyring" is not installed.', file=sys.stderr, flush=True)
+            arg.no_keyring = True
     if arg.log:
         log_file = open(arg.log, 'a', encoding='utf-8')
     if arg.logout:
