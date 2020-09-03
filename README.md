@@ -13,25 +13,42 @@ curl http://p.nju.edu.cn/portal_io/logout  # 登出
 
 ## 如何使用
 
-脚本需要 [python3](https://www.python.org/downloads/) 运行环境. 使用了 [Python keyring library](https://pypi.org/project/keyring/), 它可以跨平台地获取系统的凭据存储服务. 安装依赖:
+python脚本需要 [python3](https://www.python.org/downloads/) 运行环境. 使用了 [Python keyring library](https://pypi.org/project/keyring/), 它可以跨平台地获取系统的凭据存储服务. 安装依赖:
 
 ```bash
 pip install requests keyring
 ```
 
-运行:
+运行python脚本:
 
 ```bash
 python bras.py  # 会提示输入用户名和密码 (如果keyring中没有密码)
 python bras.py USERNAME  # 不会提示输入用户名
 python bras.py USERNAME -k  # 保持连接, 5分钟登录一次
+python bras.py -o  # 退出登录
 ```
 
 脚本从 keyring 获取密码, 只需要输入一次, 密码就会记住. keyring 在电脑用户登录时自动解锁.
 
 脚本登录时不会直接 post 用户名密码, 而是先判断是否已经登录, 如果已经登录, 则不再登录. 否则使用询问握手认证协议 (Challenge-Handshake Authentication Protocol，CHAP) 发送哈希后的密码.
 
-### 命令行选项
+运行bash脚本:
+
+```bash
+./bras.sh  # 会提示输入用户名和密码
+./bras.sh USERNAME PASSWORD  # 登录
+./bras.sh -o  # 退出登录
+```
+
+bash脚本不使用keyring获取密码, 可以手动在脚本3,4行写入用户名密码 (或者获取密码的命令), 如:
+
+```bash
+USERNAME="dz1234567"
+PASSWORD="$(base64 -d <<< ZHoxMjM0NTY3Cg==)"  # 用base64编码
+PASSWORD="$(keyring get nju_bras dz1234567)"  # 从keyring获取
+```
+
+### 命令行选项 (python脚本)
 
 ```txt
 usage: bras.py [-h] [-o] [-k] [-p seconds] [-l filename] [-n] [--no-keyring] [--password password] [username]
