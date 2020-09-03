@@ -1,17 +1,17 @@
-#!/bin/bash
+#!/bin/sh
 
 USERNAME="$1"
 PASSWORD="$2"
 
-if test "$1" = "out" -o "$1" = "-o"; then
-    curl -m 5 -s http://p.nju.edu.cn/portal_io/logout
+if test "$1" = "out" -o "$1" = "-o" -o "$1" = "--out"; then
+    curl -m 5 -sS http://p.nju.edu.cn/portal_io/logout
     exit
 fi
 
-set -euo pipefail
+set -e
 
-INFO=$(curl -m 5 -s http://p.nju.edu.cn/portal_io/getinfo)
-if grep -q '"reply_code":0' <<< "$INFO"; then
+INFO=$(curl -m 5 -sS http://p.nju.edu.cn/portal_io/getinfo)
+if echo "$INFO" | grep -q '"reply_code":0'; then
     echo "$INFO"
     exit
 fi
@@ -25,10 +25,13 @@ if test -z "$PASSWORD"; then
     echo
 fi
 
-
-CHALLENGE=$(curl -m 5 -s http://p.nju.edu.cn/portal_io/getchallenge | cut -d'"' -f10)
-ID=$(printf '%02x' $((RANDOM%256)))
-PASSWORD="$(xxd -ps -r <<< $ID)${PASSWORD}$(xxd -ps -r <<< $CHALLENGE)"
+CHALLENGE=$(curl -m 5 -sS http://p.nju.edu.cn/portal_io/getchallenge | cut -d'"' -f10)
+ID=$(dd if=/dev/urandom count=1 ibs=1 2>/dev/null | xxd -ps)
+PASSWORD="$(echo -n $ID | xxd -ps -r)${PASSWORD}$(echo -n $CHALLENGE | xxd -ps -r)"
 PASSWORD=${ID}$(echo -n "$PASSWORD" | md5sum | cut -d' ' -f1)
 
-curl -m 5 -s http://p.nju.edu.cn/portal_io/login -d username="$USERNAME" -d password="$PASSWORD" -d challenge="$CHALLENGE"
+INFO=$(curl -m 5 -sS http://p.nju.edu.cn/portal_io/login -d username="$USERNAME" -d password="$PASSWORD" -d challenge="$CHALLENGE")
+echo "$INFO"
+if ! echo "$INFO" | grep -q '"reply_code":1'; then
+    exit 1
+fi

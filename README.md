@@ -32,7 +32,7 @@ python bras.py -o  # 退出登录
 
 脚本登录时不会直接 post 用户名密码, 而是先判断是否已经登录, 如果已经登录, 则不再登录. 否则使用询问握手认证协议 (Challenge-Handshake Authentication Protocol，CHAP) 发送哈希后的密码.
 
-运行bash脚本:
+运行shell脚本:
 
 ```bash
 ./bras.sh  # 会提示输入用户名和密码
@@ -40,11 +40,11 @@ python bras.py -o  # 退出登录
 ./bras.sh -o  # 退出登录
 ```
 
-bash脚本不使用keyring获取密码, 可以手动在脚本3,4行写入用户名密码 (或者获取密码的命令), 如:
+shell脚本不使用keyring获取密码, 可以手动在脚本3,4行写入用户名密码 (或者获取密码的命令), 如:
 
 ```bash
 USERNAME="dz1234567"
-PASSWORD="$(base64 -d <<< ZHoxMjM0NTY3Cg==)"  # 用base64编码
+PASSWORD="$(echo ZHoxMjM0NTY3Cg== | base64 -d)"  # 用base64编码
 PASSWORD="$(keyring get nju_bras dz1234567)"  # 从keyring获取
 ```
 
