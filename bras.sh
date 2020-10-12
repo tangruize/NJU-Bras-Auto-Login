@@ -27,8 +27,8 @@ fi
 
 CHALLENGE=$(curl -m 5 -sS http://p.nju.edu.cn/portal_io/getchallenge | cut -d'"' -f10)
 ID=$(dd if=/dev/urandom count=1 ibs=1 2>/dev/null | xxd -ps)
-PASSWORD="$(echo -n $ID | xxd -ps -r)${PASSWORD}$(echo -n $CHALLENGE | xxd -ps -r)"
-PASSWORD=${ID}$(echo -n "$PASSWORD" | md5sum | cut -d' ' -f1)
+PASSWORD=${ID}$(echo -n "$PASSWORD" | xxd -ps)${CHALLENGE}
+PASSWORD=${ID}$(echo -n "$PASSWORD" | xxd -ps -r | md5sum | cut -d' ' -f1)
 
 INFO=$(curl -m 5 -sS http://p.nju.edu.cn/portal_io/login -d username="$USERNAME" -d password="$PASSWORD" -d challenge="$CHALLENGE")
 echo "$INFO"
