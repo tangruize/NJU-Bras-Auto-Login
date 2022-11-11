@@ -25,12 +25,13 @@ if test -z "$PASSWORD"; then
     echo
 fi
 
-CHALLENGE=$(curl -m 5 -sS http://p.nju.edu.cn/portal_io/getchallenge | cut -d'"' -f10)
-ID=$(dd if=/dev/urandom count=1 ibs=1 2>/dev/null | xxd -ps)
-PASSWORD=${ID}$(echo -n "$PASSWORD" | xxd -ps)${CHALLENGE}
-PASSWORD=${ID}$(echo -n "$PASSWORD" | xxd -ps -r | md5sum | cut -d' ' -f1)
+#CHALLENGE=$(curl -m 5 -sS http://p.nju.edu.cn/portal_io/getchallenge | cut -d'"' -f10)
+#ID=$(dd if=/dev/urandom count=1 ibs=1 2>/dev/null | xxd -ps)
+#PASSWORD=${ID}$(echo -n "$PASSWORD" | xxd -ps)${CHALLENGE}
+#PASSWORD=${ID}$(echo -n "$PASSWORD" | xxd -ps -r | md5sum | cut -d' ' -f1)
 
-INFO=$(curl -m 5 -sS http://p.nju.edu.cn/portal_io/login -d username="$USERNAME" -d password="$PASSWORD" -d challenge="$CHALLENGE")
+INFO=$(curl -m 5 -sS http://p.nju.edu.cn/portal_io/login -d username="$USERNAME" -d password="$PASSWORD" #-d challenge="$CHALLENGE"
+      )
 echo "$INFO"
 if ! echo "$INFO" | grep -q '"reply_code":1'; then
     exit 1

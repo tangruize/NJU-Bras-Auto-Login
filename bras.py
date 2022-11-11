@@ -85,14 +85,17 @@ def create_chap_password(url, d):
     return chap_data
 
 
-def bras(d=None):
+def bras(d=None, hash=False):
     url_prefix = 'http://p.nju.edu.cn/portal_io/'
     my_print('[{}]'.format(datetime.datetime.now()), end=' ')
     if d:  # 登录
         response = try_post(url_prefix + 'getinfo', None)
         if response and response.json()['reply_code'] != 0:  # 0: 已登录
-            chap_data = create_chap_password(url_prefix + 'getchallenge', d)
-            response = try_post(url_prefix + 'login', chap_data)
+            if hash:
+                chap_data = create_chap_password(url_prefix + 'getchallenge', d)
+                response = try_post(url_prefix + 'login', chap_data)
+            else:
+                response = try_post(url_prefix + 'login', d)
     else:  # 退出
         response = try_post(url_prefix + 'logout', None)
     if response:
@@ -115,6 +118,7 @@ if __name__ == '__main__':
                         help='保持登录并设置间隔时间')
     parser.add_argument('-l', '--log', dest='log', metavar='filename', help='输出记录到文件')
     parser.add_argument('-n', '--non-interactive', dest='non_interactive', action='store_true', help='不询问用户名密码')
+    parser.add_argument('--hash-password', dest='hash_password', action='store_true', help='使用hash密码')
     parser.add_argument('--no-keyring', dest='no_keyring', action='store_true', help='不使用keyring')
     parser.add_argument('--password', dest='password', metavar='password', help='用户密码')
     arg = parser.parse_args()
@@ -140,10 +144,10 @@ if __name__ == '__main__':
         if arg.period <= 0:
             arg.period = 300
         while True:
-            bras(data)
+            bras(data, hash=arg.hash_password)
             time.sleep(arg.period)
     else:
-        status = bras(data)
+        status = bras(data, hash=arg.hash_password)
         if status == 3 and not arg.no_keyring:  # 3: 认证失败
             del_password(data)
         sys.exit(0 if status in [0, 1, 6, 101] else 1)  # 0: 操作成功, 1: 登录成功, 6: 已登录, 101: 下线成功
